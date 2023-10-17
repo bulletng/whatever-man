@@ -1,0 +1,68 @@
+#Get-AppxPackage  | Format-List -Property Name,PackageUserInformation
+#Get-AppxPackage  -AllUsers | select Name, PackageFullName
+#Get-AppxPackage | Select name | where name -like "*bing*"
+
+$AppList = "Microsoft.MicrosoftOfficeHub", # Get Office
+    "Microsoft.Teams",
+    "Microsoft.SkypeApp", # Get Skype
+    "microsoft.windowscommunicationsapps", # Mail & Calendar
+    "Microsoft.People", # People
+    "Microsoft.CommsPhone", # Phone
+    "Microsoft.WindowsPhone", # Phone Companion
+    "Microsoft.Messaging", # Messaging & Skype
+    "Microsoft.MicrosoftSolitaireCollection", # Microsoft Solitaire Collection
+    "Microsoft.Microsoft3DViewer",
+    "Microsoft.BingNews",
+    "Microsoft.BingWeather",
+    "Microsoft.WindowsFeedbackHub",
+    "Microsoft.Getstarted", # Cannot be removed in W11
+    "Microsoft.GetHelp", # LOL
+    "Microsoft.MixedReality.Portal",
+    "Microsoft.ZuneVideo",
+    "Microsoft.ZuneMusic",
+    "Microsoft.Office.OneNote",
+    "Microsoft.WindowsSoundRecorder",
+    "Microsoft.WindowsAlarms",
+    "Microsoft.YourPhone",
+    "Microsoft.WindowsMaps",
+    "Microsoft.Wallet",
+    "Microsoft.Todos",
+    "Clipchamp.Clipchamp", # Video Editor
+    "MicrosoftCorporationII.QuickAssist", # Quick Assist
+    "Microsoft.XboxApp",
+    #"Microsoft.XboxGameCallableUI", # Errors out
+    "Microsoft.XboxIdentityProvider",
+    "Microsoft.XboxGamingOverlay",
+    "Microsoft.XboxGameOverlay",
+    "Microsoft.Xbox.TCUI"
+
+foreach ($App in $AppList) # Loop through Applist
+{
+    # Get individual Package info (ie multiple versions)
+	$Packages = Get-AppxPackage -AllUsers -PackageTypeFilter All | Where-Object {$_.Name -eq $App}
+	if ($Packages -ne $null)
+	{
+		foreach ($Package in $Packages) { # for each version(s)
+            "Removing Appx Package: $Package"
+            #Get-AppxPackage -AllUsers $Package.PackageFullName | Remove-AppxPackage
+            try {  Remove-AppxPackage -Package $Package -AllUsers  }
+            catch {  Write-Host "Remove Appx Package Failed" -BackgroundColor Red  }
+        }
+	}
+	else { "Unable to find package: $App" }
+
+    # Get individual Provisioned Package info
+	$ProvisionedPackage = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq $App}
+	if ($ProvisionedPackage -ne $null)
+	{
+		"Removing Appx Provisioned Package: $ProvisionedPackage"
+		#Get-AppxProvisionedPackage -online | Remove-AppxProvisionedPackage -AllUsers -Online $ProvisionedPackage.PackageName
+        try {  Remove-AppxProvisionedPackage -PackageName $ProvisionedPackage -AllUsers -Online  }
+        catch {  Write-Host "Remove Provisioned Package Failed" -BackgroundColor Red  }
+        
+	}
+	else { "Unable to find provisioned package: $App `n" }
+}
+
+timeout /t -1
+#NATHAN IS AWESOME
